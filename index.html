@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>トレーニング記録</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="トレ記録">
+<meta name="theme-color" content="#2c3e50">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:#f2f3f5;color:#222}
+header{position:sticky;top:0;background:#2c3e50;color:#fff;padding:10px 12px;z-index:5}
+header h1{font-size:1em;margin:0 0 6px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+select,input,button{font-size:16px}
+select{padding:6px;border-radius:6px;border:none}
+.tabs button{background:#3d566e;color:#fff;border:none;border-radius:6px;padding:6px 10px}
+.tabs button.on{background:#c0392b}
+main{padding:10px}
+.lift{background:#fff;border-radius:10px;padding:10px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.lift h2{font-size:1em;margin:0}.note{color:#666;font-size:.8em;margin:2px 0 8px}
+.set{display:grid;grid-template-columns:36px 1fr 1fr 1fr;gap:6px;align-items:center;padding:6px 0;border-top:1px solid #eee}
+.set.done{background:#eafaf0}
+.set .lab{grid-column:2/5;font-size:.78em;color:#666}
+.set.opt .lab{color:#8e44ad}
+.chk{width:32px;height:32px;border-radius:50%;border:2px solid #bbb;background:#fff;font-size:18px;line-height:28px;text-align:center;padding:0}
+.set.done .chk{background:#27ae60;border-color:#27ae60;color:#fff}
+.set input{width:100%;padding:6px;border:1px solid #ccc;border-radius:6px}
+.memo{grid-column:2/5}
+.big{width:100%;padding:12px;border:none;border-radius:8px;background:#c0392b;color:#fff;font-weight:bold;margin:6px 0}
+.sub{background:#7f8c8d}
+.hist{background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.85em}
+.hist b{display:block}
+.prog{font-size:.8em;color:#ddd}
+.small{font-size:.8em;color:#666}
+</style></head><body>
+<header>
+<h1 id="ptitle">トレーニング記録</h1>
+<div class="row tabs"><button id="tToday" class="on">今日</button><button id="tHist">記録一覧</button><button id="tSet">設定</button></div>
+<div class="row" id="sel" style="margin-top:6px">
+<input type="date" id="date">
+<select id="week"></select>
+<select id="day"></select>
+<span class="prog" id="progress"></span>
+</div>
+</header>
+<main id="main"></main>
+<script type="application/json" id="program-data">{"title": "93kg級・ベンチ中心 4週間（28日）", "start": "2026-11-01", "weeks": [{"mon": [{"name": "ベンチ 尻上げ（タッチアンドゴー）", "note": "トップはRPE8まで。限界まではやらない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 130, "r": "1-2", "label": "スリングショット（任意・記録に数えない）", "opt": true}, {"w": 120, "r": 3}, {"w": 110, "r": 4}, {"w": 110, "r": 4}, {"w": 110, "r": 4}, {"w": 85.0, "r": 8, "label": "最後の軽いセット"}]}], "tue": [{"name": "スクワット（3秒下ろして下で止める）", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 60, "r": 5}, {"w": 60, "r": 5}, {"w": 60, "r": 5}, {"w": 42.5, "r": 8, "label": "最後の軽いセット"}]}, {"name": "ハムのリハビリ", "note": "約5分", "sets": [{"w": "", "r": "", "label": "お尻を上げて30秒止める×3"}]}], "wed": [{"name": "ベンチ 尻つけ・胸で2〜3秒止める", "note": "尻が浮いた回は数えない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 100, "r": 5}, {"w": 100, "r": 5}, {"w": 100, "r": 5}, {"w": 100, "r": 5}, {"w": 70.0, "r": 8, "label": "最後の軽いセット"}]}], "thu": [{"name": "ベンチ 尻つけ・回数", "note": "休み2〜3分", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 95, "r": 8}, {"w": 95, "r": 8}, {"w": 95, "r": 8}, {"w": 67.5, "r": 8, "label": "最後の軽いセット"}]}], "fri": [{"name": "ベンチ 尻つけ・速く挙げる", "note": "休み45〜60秒、できるだけ速く", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 62.5, "r": 8, "label": "最後の軽いセット"}]}], "sat": [{"name": "スクワット", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 90, "r": 5}, {"w": 90, "r": 5}, {"w": 90, "r": 5}, {"w": 62.5, "r": 8, "label": "最後の軽いセット"}]}, {"name": "デッド（素手とチョーク）", "note": "パワーグリップなし", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 100, "r": 5}, {"w": 100, "r": 5}, {"w": 70.0, "r": 8, "label": "最後の軽いセット"}]}], "sun": []}, {"mon": [{"name": "ベンチ 尻上げ（タッチアンドゴー）", "note": "トップはRPE8まで。限界まではやらない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 135, "r": "1-2", "label": "スリングショット（任意・記録に数えない）", "opt": true}, {"w": 125, "r": 3}, {"w": 115, "r": 4}, {"w": 115, "r": 4}, {"w": 115, "r": 4}, {"w": 87.5, "r": 8, "label": "最後の軽いセット"}]}], "tue": [{"name": "スクワット（3秒下ろして下で止める）", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 100, "r": 5}, {"w": 100, "r": 5}, {"w": 100, "r": 5}, {"w": 70.0, "r": 8, "label": "最後の軽いセット"}]}, {"name": "ハムのリハビリ", "note": "約5分", "sets": [{"w": "", "r": "", "label": "片脚お尻上げ8回×3"}]}], "wed": [{"name": "ベンチ 尻つけ・胸で2〜3秒止める", "note": "尻が浮いた回は数えない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 105, "r": 5}, {"w": 105, "r": 5}, {"w": 105, "r": 5}, {"w": 105, "r": 5}, {"w": 72.5, "r": 8, "label": "最後の軽いセット"}]}], "thu": [{"name": "ベンチ 尻つけ・回数", "note": "休み2〜3分", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 100, "r": 8}, {"w": 100, "r": 8}, {"w": 100, "r": 8}, {"w": 70.0, "r": 8, "label": "最後の軽いセット"}]}], "fri": [{"name": "ベンチ 尻つけ・速く挙げる", "note": "休み45〜60秒、できるだけ速く", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 92.5, "r": 3}, {"w": 92.5, "r": 3}, {"w": 92.5, "r": 3}, {"w": 92.5, "r": 3}, {"w": 92.5, "r": 3}, {"w": 92.5, "r": 3}, {"w": 92.5, "r": 3}, {"w": 92.5, "r": 3}, {"w": 65.0, "r": 8, "label": "最後の軽いセット"}]}], "sat": [{"name": "スクワット", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 115, "r": 4}, {"w": 115, "r": 4}, {"w": 115, "r": 4}, {"w": 80.0, "r": 8, "label": "最後の軽いセット"}]}, {"name": "デッド（素手とチョーク）", "note": "パワーグリップなし", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 130, "r": 4}, {"w": 130, "r": 4}, {"w": 130, "r": 4}, {"w": 90.0, "r": 8, "label": "最後の軽いセット"}]}], "sun": []}, {"mon": [{"name": "ベンチ 尻上げ（タッチアンドゴー）", "note": "トップはRPE8まで。限界まではやらない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 142.5, "r": "1-2", "label": "スリングショット（任意・記録に数えない）", "opt": true}, {"w": 132.5, "r": 2}, {"w": 120, "r": 3}, {"w": 120, "r": 3}, {"w": 120, "r": 3}, {"w": 92.5, "r": 8, "label": "最後の軽いセット"}]}], "tue": [{"name": "スクワット（3秒下ろして下で止める）", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 110, "r": 4}, {"w": 110, "r": 4}, {"w": 110, "r": 4}, {"w": 77.5, "r": 8, "label": "最後の軽いセット"}]}], "wed": [{"name": "ベンチ 尻つけ・胸で2〜3秒止める", "note": "尻が浮いた回は数えない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 110, "r": 4}, {"w": 110, "r": 4}, {"w": 110, "r": 4}, {"w": 110, "r": 4}, {"w": 77.5, "r": 8, "label": "最後の軽いセット"}]}], "thu": [{"name": "ベンチ 尻つけ・回数", "note": "休み2〜3分", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 105, "r": 7}, {"w": 105, "r": 7}, {"w": 105, "r": 7}, {"w": 72.5, "r": 8, "label": "最後の軽いセット"}]}], "fri": [{"name": "ベンチ 尻つけ・速く挙げる", "note": "休み45〜60秒、できるだけ速く", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 95, "r": 3}, {"w": 95, "r": 3}, {"w": 95, "r": 3}, {"w": 95, "r": 3}, {"w": 95, "r": 3}, {"w": 95, "r": 3}, {"w": 95, "r": 3}, {"w": 95, "r": 3}, {"w": 67.5, "r": 8, "label": "最後の軽いセット"}]}], "sat": [{"name": "スクワット", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 140, "r": 3}, {"w": 140, "r": 3}, {"w": 140, "r": 3}, {"w": 97.5, "r": 8, "label": "最後の軽いセット"}]}, {"name": "デッド（素手とチョーク）", "note": "パワーグリップなし", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 160, "r": 3}, {"w": 160, "r": 3}, {"w": 160, "r": 3}, {"w": 112.5, "r": 8, "label": "最後の軽いセット"}]}], "sun": []}, {"mon": [{"name": "ベンチ 尻上げ（タッチアンドゴー）", "note": "トップはRPE8まで。限界まではやらない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 150, "r": "1-2", "label": "スリングショット（任意・記録に数えない）", "opt": true}, {"w": 137.5, "r": 1}, {"w": 115, "r": 3}, {"w": 115, "r": 3}, {"w": 95.0, "r": 8, "label": "最後の軽いセット"}]}], "tue": [{"name": "スクワット（3秒下ろして下で止める）", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 120, "r": 3}, {"w": 120, "r": 3}, {"w": 120, "r": 3}, {"w": 85.0, "r": 8, "label": "最後の軽いセット"}]}], "wed": [{"name": "ベンチ 尻つけ・胸で2〜3秒止める", "note": "尻が浮いた回は数えない", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 125, "r": 1}, {"w": 100, "r": 4}, {"w": 100, "r": 4}, {"w": 100, "r": 4}, {"w": 87.5, "r": 8, "label": "最後の軽いセット"}]}], "thu": [{"name": "ベンチ 尻つけ・回数", "note": "休み2〜3分", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 95, "r": 6}, {"w": 95, "r": 6}, {"w": 67.5, "r": 8, "label": "最後の軽いセット"}]}], "fri": [{"name": "ベンチ 尻つけ・速く挙げる", "note": "休み45〜60秒、できるだけ速く", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 90, "r": 3}, {"w": 62.5, "r": 8, "label": "最後の軽いセット"}]}], "sat": [{"name": "スクワット", "note": "ハムに痛みがない日だけ", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 150, "r": 3}, {"w": 135, "r": 3}, {"w": 135, "r": 3}, {"w": 105.0, "r": 8, "label": "最後の軽いセット"}]}, {"name": "デッド（素手とチョーク）", "note": "パワーグリップなし", "sets": [{"w": "", "r": "", "label": "ウォームアップ（バー×10→40%×5→60%×3→75%×2→85%×1）", "warm": true}, {"w": 185, "r": 3}, {"w": 185, "r": 3}, {"w": 130.0, "r": 8, "label": "最後の軽いセット"}]}], "sun": []}], "extras": {"mon": [{"name": "ダンベルロウ／胸を台に付けたロウ", "note": "余力2回で止める", "sets": [{"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}]}, {"name": "リアレイズ／チューブのフェイスプル", "note": "軽く", "sets": [{"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}]}], "tue": [{"name": "ダンベルロウ／胸を台に付けたロウ", "note": "余力2回で止める", "sets": [{"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}]}, {"name": "リアレイズ／チューブのフェイスプル", "note": "軽く", "sets": [{"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}]}], "wed": [{"name": "ダンベルロウ／胸を台に付けたロウ", "note": "余力2回で止める", "sets": [{"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}]}, {"name": "リアレイズ／チューブのフェイスプル", "note": "軽く", "sets": [{"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}]}], "thu": [{"name": "ダンベルロウ／胸を台に付けたロウ", "note": "余力2回で止める", "sets": [{"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}]}, {"name": "リアレイズ／チューブのフェイスプル", "note": "軽く", "sets": [{"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}]}], "fri": [{"name": "ダンベルロウ／胸を台に付けたロウ", "note": "余力2回で止める", "sets": [{"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}, {"w": "", "r": "10-12"}]}, {"name": "リアレイズ／チューブのフェイスプル", "note": "軽く", "sets": [{"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}]}], "sat": [{"name": "リアレイズ／チューブのフェイスプル", "note": "軽く", "sets": [{"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}, {"w": "", "r": "15-20"}]}], "sun": []}}</script>
+<script>
+const DAYS=[["mon","1日目"],["tue","2日目"],["wed","3日目"],["thu","4日目"],["fri","5日目"],["sat","6日目"],["sun","7日目"]];
+const LS_P="trk_program",LS_L="trk_logs";
+let P=JSON.parse(localStorage.getItem(LS_P)||document.getElementById("program-data").textContent);
+let L=JSON.parse(localStorage.getItem(LS_L)||"{}");
+const $=id=>document.getElementById(id);
+function saveL(){localStorage.setItem(LS_L,JSON.stringify(L))}
+function ymd(d){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())}
+function startDate(){return localStorage.getItem("trk_start")||P.start}
+function autoPick(ds){const s=new Date(startDate()+"T00:00"),d=new Date(ds+"T00:00");let diff=Math.floor((d-s)/864e5);let w=Math.floor(diff/7);w=Math.max(0,Math.min(P.weeks.length-1,w));let wd=((diff%7)+7)%7;return [w,wd]}
+function fillSel(){$("ptitle").textContent=P.title||"トレーニング記録";$("week").innerHTML=P.weeks.map((_,i)=>`<option value="${i}">${i+1}週目</option>`).join("");$("day").innerHTML=DAYS.map((d,i)=>`<option value="${i}">${d[1]}</option>`).join("")}
+function key(){return $("date").value}
+function session(){const k=key();if(!L[k]){const w=+$("week").value,d=DAYS[+$("day").value][0];L[k]={week:w,day:d,lifts:JSON.parse(JSON.stringify(P.weeks[w][d]||[])).map(x=>({...x,sets:x.sets.map(s=>({...s,done:false,rpe:"",memo:""}))})),extra:false}}return L[k]}
+function rebuild(){delete L[key()];session();saveL();render()}
+function addExtra(){const s=session();const d=s.day;const ex=(P.extras&&P.extras[d])||[];if(!ex.length){alert("この日の追加種目はありません");return}
+ ex.forEach(x=>s.lifts.push({...JSON.parse(JSON.stringify(x)),isExtra:true,sets:x.sets.map(t=>({...t,done:false,rpe:"",memo:""}))}));s.extra=true;saveL();render()}
+function render(){const tab=document.querySelector(".tabs .on").id;$("sel").style.display=tab=="tToday"?"flex":"none";
+ if(tab=="tHist")return renderHist();if(tab=="tSet")return renderSet();
+ const s=session();$("week").value=s.week;$("day").value=DAYS.findIndex(x=>x[0]==s.day);
+ let all=0,dn=0,h="";
+ if(!s.lifts.length)h+=`<div class="lift"><h2>休み</h2><div class="note">散歩20〜40分</div></div>`;
+ s.lifts.forEach((l,li)=>{h+=`<div class="lift"><h2>${l.isExtra?"＋ ":""}${l.name}</h2><div class="note">${l.note||""}</div>`;
+  l.sets.forEach((t,si)=>{if(!t.opt){all++;if(t.done)dn++}
+   h+=`<div class="set ${t.done?"done":""} ${t.opt?"opt":""}">
+   <button class="chk" data-a="chk" data-l="${li}" data-s="${si}">${t.done?"✓":(t.warm?"W":t.opt?"S":si+(l.sets[0].warm?0:1)-(l.sets.slice(0,si).some(x=>x.opt)?1:0))}</button>
+   <input inputmode="decimal" placeholder="kg" value="${t.w}" data-a="w" data-l="${li}" data-s="${si}">
+   <input inputmode="numeric" placeholder="回" value="${t.r}" data-a="r" data-l="${li}" data-s="${si}">
+   <input inputmode="decimal" placeholder="RPE" value="${t.rpe}" data-a="rpe" data-l="${li}" data-s="${si}">
+   ${t.label?`<div class="lab">${t.label}</div>`:""}
+   <input class="memo" placeholder="メモ" value="${t.memo||""}" data-a="memo" data-l="${li}" data-s="${si}"></div>`});
+  h+=`</div>`});
+ if(!s.extra)h+=`<button class="big" id="bExtra">＋ 追加（30分オプション）</button>`;
+ h+=`<button class="big sub" id="bReset">この日をプログラムどおりにやり直す</button>`;
+ $("main").innerHTML=h;$("progress").textContent=all?`${dn}/${all}セット`:"";
+ if($("bExtra"))$("bExtra").onclick=addExtra;$("bReset").onclick=()=>{if(confirm("この日の記録を消して作り直しますか？"))rebuild()}}
+$("main").addEventListener("click",e=>{const b=e.target.closest("[data-a=chk]");if(!b)return;const s=session(),t=s.lifts[b.dataset.l].sets[b.dataset.s];t.done=!t.done;saveL();render()});
+$("main").addEventListener("input",e=>{const a=e.target.dataset.a;if(!a||a=="chk")return;const s=session();s.lifts[e.target.dataset.l].sets[e.target.dataset.s][a]=e.target.value;saveL()});
+function renderHist(){const ks=Object.keys(L).sort().reverse();let h="";if(!ks.length)h="<p class='small'>まだ記録がありません</p>";
+ ks.forEach(k=>{const s=L[k];h+=`<div class="hist"><b>${k}（${s.week+1}週目・${DAYS.find(d=>d[0]==s.day)[1]}）</b>`;
+  s.lifts.forEach(l=>{const d=l.sets.filter(t=>t.done&&!t.warm);if(!d.length)return;h+=`<div>${l.name}：`+d.map(t=>`${t.w||"-"}kg×${t.r}${t.rpe?"@"+t.rpe:""}${t.memo?"（"+t.memo+"）":""}`).join("、")+`</div>`});h+=`</div>`});
+ $("main").innerHTML=h;$("progress").textContent=""}
+function renderSet(){$("main").innerHTML=`<div class="lift"><h2>開始日</h2><div class="note">この日が1週目の1日目になり、日付から何日目かを自動で選びます。ずれた日は上の選択で直せます。</div><input type="date" id="sd" value="${startDate()}"></div><div class="lift"><h2>プログラムを読み込む</h2><div class="note">プログラムのHTML（またはJSON）ファイルを選ぶと、その内容どおりのメニューになります。記録は消えません。</div><input type="file" id="fP" accept=".html,.htm,.json"></div>
+ <div class="lift"><h2>記録のバックアップ</h2><div class="note">機種変更やブラウザの掃除の前に保存してください。</div><button class="big" id="bExp">記録を書き出す</button><input type="file" id="fL" accept=".json"><div class="small">↑書き出したファイルを選ぶと記録を戻せます</div></div>`;
+ $("sd").onchange=e=>{localStorage.setItem("trk_start",e.target.value);alert("開始日を"+e.target.value+"にしました")};
+ $("fP").onchange=e=>readFile(e,txt=>{let p;try{p=JSON.parse(txt)}catch(_){const m=txt.match(/<script[^>]*id=["']program-data["'][^>]*>([\s\S]*?)<\/script>/);if(!m)return alert("このファイルにはプログラムのデータが入っていません");p=JSON.parse(m[1])}
+  if(!p.weeks)return alert("形式が違います");P=p;localStorage.setItem(LS_P,JSON.stringify(P));fillSel();alert("読み込みました："+(P.title||""))});
+ $("bExp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(L)],{type:"application/json"}));a.download="training_log_"+ymd(new Date())+".json";a.click()};
+ $("fL").onchange=e=>readFile(e,txt=>{L=Object.assign(L,JSON.parse(txt));saveL();alert("記録を戻しました")})}
+function readFile(e,cb){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsText(f)}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");render()});
+$("date").onchange=()=>{if(!L[key()]){const [w,d]=autoPick(key());$("week").value=w;$("day").value=d}render()};
+$("week").onchange=$("day").onchange=()=>{const s=L[key()];if(s&&s.lifts.some(l=>l.sets.some(t=>t.done))&&!confirm("この日の記録を消してメニューを入れ替えますか？")){render();return}delete L[key()];session();saveL();render()};
+fillSel();$("date").value=ymd(new Date());{const [w,d]=autoPick(key());$("week").value=w;$("day").value=d}render();
+</script><script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js")</script>
+</body></html>

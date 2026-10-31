@@ -52,7 +52,7 @@ const LS_P="trk_program",LS_L="trk_logs";
 let P=JSON.parse(localStorage.getItem(LS_P)||document.getElementById("program-data").textContent);
 let L=JSON.parse(localStorage.getItem(LS_L)||"{}");
 const $=id=>document.getElementById(id);
-function saveL(){localStorage.setItem(LS_L,JSON.stringify(L))}
+function saveL(){localStorage.setItem(LS_L,JSON.stringify(L));if(typeof pushDay=="function"&&$("date")&&$("date").value)pushDay($("date").value)}
 function ymd(d){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())}
 function startDate(){return localStorage.getItem("trk_start")||P.start}
 function autoPick(ds){const s=new Date(startDate()+"T00:00"),d=new Date(ds+"T00:00");let diff=Math.floor((d-s)/864e5);let w=Math.floor(diff/7);w=Math.max(0,Math.min(P.weeks.length-1,w));let wd=((diff%7)+7)%7;return [w,wd]}
@@ -67,6 +67,16 @@ function clearAfter(k){Object.keys(L).forEach(x=>{if(x>k&&!L[x].skipped&&!L[x].l
 function skipDay(){const k=key(),s=session();if(s.lifts.some(l=>l.sets.some(t=>t.done))&&!confirm("この日はチェック済みのセットがあります。スキップしますか？"))return;if(!confirm("この日をスキップして、予定を1日うしろにずらしますか？"))return;
  L[k]={week:s.week,day:s.day,lifts:[],skipped:true};shiftStart(1);clearAfter(k);saveL();render()}
 function unskip(){const k=key();if(!confirm("スキップを取り消しますか？"))return;delete L[k];shiftStart(-1);clearAfter(k);saveL();const [w,d]=autoPick(k);$("week").value=w;$("day").value=d;render()}
+function logText(k){const s=L[k];if(!s)return "";let t=`${k} ${s.week+1}週目${DAYS.find(d=>d[0]==s.day)[1]}`;if(s.skipped)return t+" スキップ";
+ s.lifts.forEach(l=>{const d=l.sets.filter(x=>x.done&&!x.warm);if(!d.length)return;t+="\n"+l.name+" "+d.map(x=>`${x.w||"-"}×${x.r}${x.rpe?"@"+x.rpe:""}${x.memo?"（"+x.memo+"）":""}`).join(" ")});return t}
+function copyLog(){const t=logText(key());const done=()=>alert("コピーしました。チャットに貼り付けてください。\n\n"+t);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>prompt("この文章をコピーしてください",t));else prompt("この文章をコピーしてください",t)}
+function syncUrl(){return localStorage.getItem("trk_sync")||""}
+let syncT={};
+function pushDay(k){const u=syncUrl();if(!u||!L[k])return;clearTimeout(syncT[k]);syncT[k]=setTimeout(()=>{const s=L[k];
+ fetch(u,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({date:k,week:s.week+1,day:DAYS.find(d=>d[0]==s.day)[1],text:logText(k),data:s})}).then(()=>{const q=JSON.parse(localStorage.getItem("trk_q")||"[]").filter(x=>x!=k);localStorage.setItem("trk_q",JSON.stringify(q))}).catch(()=>{})},2000);
+ const q=JSON.parse(localStorage.getItem("trk_q")||"[]");if(!q.includes(k)){q.push(k);localStorage.setItem("trk_q",JSON.stringify(q))}}
+function flushQ(){JSON.parse(localStorage.getItem("trk_q")||"[]").forEach(pushDay)}
+function pullProgram(){const u=syncUrl();if(!u)return;fetch(u).then(r=>r.json()).then(p=>{if(!p.weeks)return;const n=JSON.stringify(p);if(n!=localStorage.getItem(LS_P)){P=p;localStorage.setItem(LS_P,n);fillSel();const k=key();if(L[k]&&!L[k].skipped&&!L[k].lifts.some(l=>l.sets.some(t=>t.done))){delete L[k];saveL()}render()}}).catch(()=>{})}
 function render(){const tab=document.querySelector(".tabs .on").id;$("sel").style.display=tab=="tToday"?"flex":"none";
  if(tab=="tHist")return renderHist();if(tab=="tSet")return renderSet();
  const s=session();$("week").value=s.week;$("day").value=DAYS.findIndex(x=>x[0]==s.day);
@@ -84,18 +94,20 @@ function render(){const tab=document.querySelector(".tabs .on").id;$("sel").styl
    <input class="memo" placeholder="メモ" value="${t.memo||""}" data-a="memo" data-l="${li}" data-s="${si}"></div>`});
   h+=`</div>`});
  if(!s.extra)h+=`<button class="big" id="bExtra">＋ 追加（30分オプション）</button>`;
+ h+=`<button class="big" id="bCopy">今日の記録をコピー</button>`;
  h+=`<button class="big sub" id="bSkip">この日をスキップ（予定を1日うしろへ）</button>`;
  h+=`<button class="big sub" id="bReset">この日をプログラムどおりにやり直す</button>`;
  $("main").innerHTML=h;$("progress").textContent=all?`${dn}/${all}セット`:"";
- if($("bExtra"))$("bExtra").onclick=addExtra;$("bSkip").onclick=skipDay;$("bReset").onclick=()=>{if(confirm("この日の記録を消して作り直しますか？"))rebuild()}}
+ if($("bExtra"))$("bExtra").onclick=addExtra;$("bSkip").onclick=skipDay;$("bCopy").onclick=copyLog;$("bReset").onclick=()=>{if(confirm("この日の記録を消して作り直しますか？"))rebuild()}}
 $("main").addEventListener("click",e=>{const b=e.target.closest("[data-a=chk]");if(!b)return;const s=session(),t=s.lifts[b.dataset.l].sets[b.dataset.s];t.done=!t.done;saveL();render()});
 $("main").addEventListener("input",e=>{const a=e.target.dataset.a;if(!a||a=="chk")return;const s=session();s.lifts[e.target.dataset.l].sets[e.target.dataset.s][a]=e.target.value;saveL()});
 function renderHist(){const ks=Object.keys(L).sort().reverse();let h="";if(!ks.length)h="<p class='small'>まだ記録がありません</p>";
  ks.forEach(k=>{const s=L[k];h+=`<div class="hist"><b>${k}（${s.week+1}週目・${DAYS.find(d=>d[0]==s.day)[1]}）${s.skipped?"スキップ":""}</b>`;
   s.lifts.forEach(l=>{const d=l.sets.filter(t=>t.done&&!t.warm);if(!d.length)return;h+=`<div>${l.name}：`+d.map(t=>`${t.w||"-"}kg×${t.r}${t.rpe?"@"+t.rpe:""}${t.memo?"（"+t.memo+"）":""}`).join("、")+`</div>`});h+=`</div>`});
  $("main").innerHTML=h;$("progress").textContent=""}
-function renderSet(){$("main").innerHTML=`<div class="lift"><h2>開始日</h2><div class="note">この日が1週目の1日目になり、日付から何日目かを自動で選びます。ずれた日は上の選択で直せます。</div><input type="date" id="sd" value="${startDate()}"></div><div class="lift"><h2>プログラムを読み込む</h2><div class="note">プログラムのHTML（またはJSON）ファイルを選ぶと、その内容どおりのメニューになります。記録は消えません。</div><input type="file" id="fP" accept=".html,.htm,.json"></div>
+function renderSet(){$("main").innerHTML=`<div class="lift"><h2>開始日</h2><div class="note">この日が1週目の1日目になり、日付から何日目かを自動で選びます。ずれた日は上の選択で直せます。</div><input type="date" id="sd" value="${startDate()}"></div><div class="lift"><h2>自動送信（コーチ連携）</h2><div class="note">Apps ScriptのウェブアプリURLを貼ると、記録が自動でスプレッドシートに送られ、コーチが調整したメニューが自動で反映されます。</div><input id="su" placeholder="https://script.google.com/macros/s/.../exec" value="${syncUrl()}" style="width:100%"><button class="big" id="bSu">保存して今すぐ同期</button></div><div class="lift"><h2>プログラムを読み込む</h2><div class="note">プログラムのHTML（またはJSON）ファイルを選ぶと、その内容どおりのメニューになります。記録は消えません。</div><input type="file" id="fP" accept=".html,.htm,.json"></div>
  <div class="lift"><h2>記録のバックアップ</h2><div class="note">機種変更やブラウザの掃除の前に保存してください。</div><button class="big" id="bExp">記録を書き出す</button><input type="file" id="fL" accept=".json"><div class="small">↑書き出したファイルを選ぶと記録を戻せます</div></div>`;
+ $("bSu").onclick=()=>{localStorage.setItem("trk_sync",$("su").value.trim());Object.keys(L).forEach(pushDay);pullProgram();alert("保存しました。記録を送信します。")};
  $("sd").onchange=e=>{localStorage.setItem("trk_start",e.target.value);alert("開始日を"+e.target.value+"にしました")};
  $("fP").onchange=e=>readFile(e,txt=>{let p;try{p=JSON.parse(txt)}catch(_){const m=txt.match(/<script[^>]*id=["']program-data["'][^>]*>([\s\S]*?)<\/script>/);if(!m)return alert("このファイルにはプログラムのデータが入っていません");p=JSON.parse(m[1])}
   if(!p.weeks)return alert("形式が違います");P=p;localStorage.setItem(LS_P,JSON.stringify(P));fillSel();alert("読み込みました："+(P.title||""))});
@@ -105,6 +117,6 @@ function readFile(e,cb){const f=e.target.files[0];if(!f)return;const r=new FileR
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");render()});
 $("date").onchange=()=>{if(!L[key()]){const [w,d]=autoPick(key());$("week").value=w;$("day").value=d}render()};
 $("week").onchange=$("day").onchange=()=>{const s=L[key()];if(s&&s.lifts.some(l=>l.sets.some(t=>t.done))&&!confirm("この日の記録を消してメニューを入れ替えますか？")){render();return}delete L[key()];session();saveL();render()};
-fillSel();$("date").value=ymd(new Date());{const [w,d]=autoPick(key());$("week").value=w;$("day").value=d}render();
+fillSel();$("date").value=ymd(new Date());{const [w,d]=autoPick(key());$("week").value=w;$("day").value=d}render();flushQ();pullProgram();document.addEventListener("visibilitychange",()=>{if(!document.hidden){flushQ();pullProgram()}});
 </script><script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js")</script>
 </body></html>

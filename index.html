@@ -62,9 +62,15 @@ function session(){const k=key();if(!L[k]){const w=+$("week").value,d=DAYS[+$("d
 function rebuild(){delete L[key()];session();saveL();render()}
 function addExtra(){const s=session();const d=s.day;const ex=(P.extras&&P.extras[d])||[];if(!ex.length){alert("この日の追加種目はありません");return}
  ex.forEach(x=>s.lifts.push({...JSON.parse(JSON.stringify(x)),isExtra:true,sets:x.sets.map(t=>({...t,done:false,rpe:"",memo:""}))}));s.extra=true;saveL();render()}
+function shiftStart(n){const d=new Date(startDate()+"T00:00");d.setDate(d.getDate()+n);localStorage.setItem("trk_start",ymd(d))}
+function clearAfter(k){Object.keys(L).forEach(x=>{if(x>k&&!L[x].skipped&&!L[x].lifts.some(l=>l.sets.some(t=>t.done)))delete L[x]})}
+function skipDay(){const k=key(),s=session();if(s.lifts.some(l=>l.sets.some(t=>t.done))&&!confirm("この日はチェック済みのセットがあります。スキップしますか？"))return;if(!confirm("この日をスキップして、予定を1日うしろにずらしますか？"))return;
+ L[k]={week:s.week,day:s.day,lifts:[],skipped:true};shiftStart(1);clearAfter(k);saveL();render()}
+function unskip(){const k=key();if(!confirm("スキップを取り消しますか？"))return;delete L[k];shiftStart(-1);clearAfter(k);saveL();const [w,d]=autoPick(k);$("week").value=w;$("day").value=d;render()}
 function render(){const tab=document.querySelector(".tabs .on").id;$("sel").style.display=tab=="tToday"?"flex":"none";
  if(tab=="tHist")return renderHist();if(tab=="tSet")return renderSet();
  const s=session();$("week").value=s.week;$("day").value=DAYS.findIndex(x=>x[0]==s.day);
+ if(s.skipped){$("main").innerHTML=`<div class="lift"><h2>スキップした日</h2><div class="note">この日の予定（${s.week+1}週目・${DAYS.find(d=>d[0]==s.day)[1]}）は翌日に回しました。</div></div><button class="big sub" id="bUnskip">スキップを取り消す</button>`;$("progress").textContent="";$("bUnskip").onclick=unskip;return}
  let all=0,dn=0,h="";
  if(!s.lifts.length)h+=`<div class="lift"><h2>休み</h2><div class="note">散歩20〜40分</div></div>`;
  s.lifts.forEach((l,li)=>{h+=`<div class="lift"><h2>${l.isExtra?"＋ ":""}${l.name}</h2><div class="note">${l.note||""}</div>`;
@@ -78,13 +84,14 @@ function render(){const tab=document.querySelector(".tabs .on").id;$("sel").styl
    <input class="memo" placeholder="メモ" value="${t.memo||""}" data-a="memo" data-l="${li}" data-s="${si}"></div>`});
   h+=`</div>`});
  if(!s.extra)h+=`<button class="big" id="bExtra">＋ 追加（30分オプション）</button>`;
+ h+=`<button class="big sub" id="bSkip">この日をスキップ（予定を1日うしろへ）</button>`;
  h+=`<button class="big sub" id="bReset">この日をプログラムどおりにやり直す</button>`;
  $("main").innerHTML=h;$("progress").textContent=all?`${dn}/${all}セット`:"";
- if($("bExtra"))$("bExtra").onclick=addExtra;$("bReset").onclick=()=>{if(confirm("この日の記録を消して作り直しますか？"))rebuild()}}
+ if($("bExtra"))$("bExtra").onclick=addExtra;$("bSkip").onclick=skipDay;$("bReset").onclick=()=>{if(confirm("この日の記録を消して作り直しますか？"))rebuild()}}
 $("main").addEventListener("click",e=>{const b=e.target.closest("[data-a=chk]");if(!b)return;const s=session(),t=s.lifts[b.dataset.l].sets[b.dataset.s];t.done=!t.done;saveL();render()});
 $("main").addEventListener("input",e=>{const a=e.target.dataset.a;if(!a||a=="chk")return;const s=session();s.lifts[e.target.dataset.l].sets[e.target.dataset.s][a]=e.target.value;saveL()});
 function renderHist(){const ks=Object.keys(L).sort().reverse();let h="";if(!ks.length)h="<p class='small'>まだ記録がありません</p>";
- ks.forEach(k=>{const s=L[k];h+=`<div class="hist"><b>${k}（${s.week+1}週目・${DAYS.find(d=>d[0]==s.day)[1]}）</b>`;
+ ks.forEach(k=>{const s=L[k];h+=`<div class="hist"><b>${k}（${s.week+1}週目・${DAYS.find(d=>d[0]==s.day)[1]}）${s.skipped?"スキップ":""}</b>`;
   s.lifts.forEach(l=>{const d=l.sets.filter(t=>t.done&&!t.warm);if(!d.length)return;h+=`<div>${l.name}：`+d.map(t=>`${t.w||"-"}kg×${t.r}${t.rpe?"@"+t.rpe:""}${t.memo?"（"+t.memo+"）":""}`).join("、")+`</div>`});h+=`</div>`});
  $("main").innerHTML=h;$("progress").textContent=""}
 function renderSet(){$("main").innerHTML=`<div class="lift"><h2>開始日</h2><div class="note">この日が1週目の1日目になり、日付から何日目かを自動で選びます。ずれた日は上の選択で直せます。</div><input type="date" id="sd" value="${startDate()}"></div><div class="lift"><h2>プログラムを読み込む</h2><div class="note">プログラムのHTML（またはJSON）ファイルを選ぶと、その内容どおりのメニューになります。記録は消えません。</div><input type="file" id="fP" accept=".html,.htm,.json"></div>

@@ -101,7 +101,7 @@ function render(){const tab=document.querySelector(".tabs .on").id;$("sel").styl
    <input inputmode="decimal" placeholder="RPE" value="${t.rpe}" data-a="rpe" data-l="${li}" data-s="${si}">
    ${t.label?`<div class="lab">${t.label}</div>`:""}
    <input class="memo" placeholder="メモ" value="${t.memo||""}" data-a="memo" data-l="${li}" data-s="${si}"></div>`});
-  if(l.isExtra)h+=`<button class="big sub" data-a="addset" data-l="${li}">＋ セットを追加</button>`;
+  h+=`<button class="big sub" data-a="addset" data-l="${li}">＋ セットを追加</button>`;
   h+=`</div>`});
  h+=`<button class="big" id="bExtra">＋ 種目を追加</button>`;
  h+=`<button class="big" id="bCopy">今日の記録をコピー</button>`;

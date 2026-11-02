@@ -29,6 +29,7 @@ main{padding:10px}
 .memo{grid-column:2/5}
 .big{width:100%;padding:12px;border:none;border-radius:8px;background:#c0392b;color:#fff;font-weight:bold;margin:6px 0}
 .sub{background:#7f8c8d}
+.big.danger{background:#fff;color:#c0392b;border:2px solid #c0392b}
 .hist{background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.85em}
 .hist b{display:block}
 .prog{font-size:.8em;color:#ddd}
@@ -81,10 +82,16 @@ function logText(k){const s=L[k];if(!s)return "";let t=`${k} ${s.week+1}週目${
 function copyLog(){const t=logText(key());const done=()=>alert("コピーしました。チャットに貼り付けてください。\n\n"+t);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>prompt("この文章をコピーしてください",t));else prompt("この文章をコピーしてください",t)}
 function syncUrl(){return localStorage.getItem("trk_sync")||""}
 let syncT={};
-function pushDay(k){const u=syncUrl();if(!u||!L[k])return;clearTimeout(syncT[k]);syncT[k]=setTimeout(()=>{const s=L[k];
+function pushDay(k){const u=syncUrl();if(!u||!L[k])return;clearTimeout(syncT[k]);syncT[k]=setTimeout(()=>{const s=L[k];if(!s)return;
  fetch(u,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({date:k,week:s.week+1,day:DAYS.find(d=>d[0]==s.day)[1],text:logText(k),data:s})}).then(()=>{const q=JSON.parse(localStorage.getItem("trk_q")||"[]").filter(x=>x!=k);localStorage.setItem("trk_q",JSON.stringify(q))}).catch(()=>{})},2000);
  const q=JSON.parse(localStorage.getItem("trk_q")||"[]");if(!q.includes(k)){q.push(k);localStorage.setItem("trk_q",JSON.stringify(q))}}
 function flushQ(){JSON.parse(localStorage.getItem("trk_q")||"[]").forEach(pushDay)}
+function clearAllLogs(){if(!confirm("全ての記録を消します。元に戻せません。よろしいですか？（先に「記録を書き出す」でバックアップできます）"))return;
+ Object.keys(syncT).forEach(k=>{clearTimeout(syncT[k]);delete syncT[k]});
+ L={};localStorage.removeItem(LS_L);localStorage.removeItem("trk_q");
+ const [w,d]=autoPick(key());$("week").value=w;$("day").value=d;
+ document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));$("tToday").classList.add("on");
+ render();delete L[key()];alert("記録を消しました")}
 function pullProgram(){const u=syncUrl();if(!u)return;fetch(u).then(r=>r.json()).then(p=>{if(!p.weeks)return;const n=JSON.stringify(p);if(n!=localStorage.getItem(LS_P)){P=p;localStorage.setItem(LS_P,n);fillSel();const k=key();if(L[k]&&!L[k].skipped&&!L[k].lifts.some(l=>l.sets.some(t=>t.done))){delete L[k];saveL()}render()}}).catch(()=>{})}
 function render(){const tab=document.querySelector(".tabs .on").id;$("sel").style.display=tab=="tToday"?"flex":"none";
  if(tab=="tHist")return renderHist();if(tab=="tSet")return renderSet();
@@ -116,12 +123,13 @@ function renderHist(){const ks=Object.keys(L).sort().reverse();let h="";if(!ks.l
   s.lifts.forEach(l=>{const d=l.sets.filter(t=>t.done&&!t.warm);if(!d.length)return;h+=`<div>${l.name}：`+d.map(t=>`${t.w||"-"}kg×${t.r}${t.rpe?"@"+t.rpe:""}${t.memo?"（"+t.memo+"）":""}`).join("、")+`</div>`});h+=`</div>`});
  $("main").innerHTML=h;$("progress").textContent=""}
 function renderSet(){$("main").innerHTML=`<div class="lift"><h2>開始日</h2><div class="note">この日が1週目の1日目になり、日付から何日目かを自動で選びます。ずれた日は上の選択で直せます。</div><input type="date" id="sd" value="${startDate()}"></div><div class="lift"><h2>自動送信（コーチ連携）</h2><div class="note">Apps ScriptのウェブアプリURLを貼ると、記録が自動でスプレッドシートに送られ、コーチが調整したメニューが自動で反映されます。</div><input id="su" placeholder="https://script.google.com/macros/s/.../exec" value="${syncUrl()}" style="width:100%"><button class="big" id="bSu">保存して今すぐ同期</button></div><div class="lift"><h2>プログラムを読み込む</h2><div class="note">プログラムのHTML（またはJSON）ファイルを選ぶと、その内容どおりのメニューになります。記録は消えません。</div><input type="file" id="fP" accept=".html,.htm,.json"></div>
- <div class="lift"><h2>記録のバックアップ</h2><div class="note">機種変更やブラウザの掃除の前に保存してください。</div><button class="big" id="bExp">記録を書き出す</button><input type="file" id="fL" accept=".json"><div class="small">↑書き出したファイルを選ぶと記録を戻せます</div></div>`;
+ <div class="lift"><h2>記録のバックアップ</h2><div class="note">機種変更やブラウザの掃除の前に保存してください。</div><button class="big" id="bExp">記録を書き出す</button><input type="file" id="fL" accept=".json"><div class="small">↑書き出したファイルを選ぶと記録を戻せます</div><button class="big danger" id="bClearAll">全記録を消す</button><div class="small">このスマホの記録だけ消します。プログラム・開始日・送信先とスプレッドシートはそのままです。</div></div>`;
  $("bSu").onclick=()=>{localStorage.setItem("trk_sync",$("su").value.trim());Object.keys(L).forEach(pushDay);pullProgram();alert("保存しました。記録を送信します。")};
  $("sd").onchange=e=>{localStorage.setItem("trk_start",e.target.value);alert("開始日を"+e.target.value+"にしました")};
  $("fP").onchange=e=>readFile(e,txt=>{let p;try{p=JSON.parse(txt)}catch(_){const m=txt.match(/<script[^>]*id=["']program-data["'][^>]*>([\s\S]*?)<\/script>/);if(!m)return alert("このファイルにはプログラムのデータが入っていません");p=JSON.parse(m[1])}
   if(!p.weeks)return alert("形式が違います");P=p;localStorage.setItem(LS_P,JSON.stringify(P));fillSel();alert("読み込みました："+(P.title||""))});
  $("bExp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(L)],{type:"application/json"}));a.download="training_log_"+ymd(new Date())+".json";a.click()};
+ $("bClearAll").onclick=clearAllLogs;
  $("fL").onchange=e=>readFile(e,txt=>{L=Object.assign(L,JSON.parse(txt));saveL();alert("記録を戻しました")})}
 function readFile(e,cb){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsText(f)}
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");render()});
